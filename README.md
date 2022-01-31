@@ -10,7 +10,7 @@ import PackageDescription
 let package = Package(
     name: "YOUR_PROJECT_NAME",
     dependencies: [
-        .package(url: "https://github.com/", from: "5.5.5"),
+        .package(url: "https://github.com/zstickel/SwiftTwitterAPIV2Client", from: "5.5.5"),
     ]
 )
 
