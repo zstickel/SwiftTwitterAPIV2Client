@@ -10,7 +10,7 @@ public class SwiftTwitterAPIV2Client {
     var concatCredentials: String = ""
     let baseSixFour : String?
     var bearerToken : String = ""
-    enum Language {
+    public enum Language {
         case english, french, spanish, german
     }
     
@@ -44,7 +44,7 @@ public class SwiftTwitterAPIV2Client {
             }
         }
     }
-    func searchRecentTweets(searchString: String, isVerified : Bool, maxResults: Int, language: Language, searchRecentTweetsCompletionHandler: @escaping (String)-> Void) {
+    public func searchRecentTweets(searchString: String, isVerified : Bool, maxResults: Int, language: Language, searchRecentTweetsCompletionHandler: @escaping (String)-> Void) {
         let language = getLanguage(language: language)
         var query = ""
         var finalResult = ""
@@ -77,7 +77,7 @@ public class SwiftTwitterAPIV2Client {
         }.resume()
     }
     
-    func searchRecentTweets(searchString: String, isVerified : Bool, maxResults: Int, language: Language) async -> String {
+    public func searchRecentTweets(searchString: String, isVerified : Bool, maxResults: Int, language: Language) async -> String {
             await withCheckedContinuation {continuation in
                 searchRecentTweets (searchString: searchString, isVerified: isVerified, maxResults: maxResults, language: language, searchRecentTweetsCompletionHandler: { result in
                         continuation.resume(returning: result)
