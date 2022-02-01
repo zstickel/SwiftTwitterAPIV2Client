@@ -35,11 +35,10 @@ public class SwiftTwitterAPIV2Client {
                 
                 let json = try JSON(data: data)
                 print(json)
-                if let token = json["access_token"].rawString(){
-                    self.bearerToken = token
-                    authenticateCompletionHandler(token)
-                }
-                authenticateCompletionHandler("")
+                var token = ""
+                token = json["access_token"].rawString() ?? ""
+                self.bearerToken = token
+                authenticateCompletionHandler(token)
             }catch{
                 print(error)
                 authenticateCompletionHandler("")
