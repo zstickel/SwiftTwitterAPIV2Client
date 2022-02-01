@@ -19,9 +19,8 @@ public class SwiftTwitterAPIV2Client {
     public init(consumerKey: String, consumerSecret: String){
         concatCredentials = consumerKey + ":" + consumerSecret
         baseSixFour = concatCredentials.data(using: .utf8)?.base64EncodedString()
-        authenticate()
     }
-    public func authenticate(){
+    public func authenticate(authenticateCompletionHandler: @escaping (String)-> Void){
         let headers: HTTPHeaders = [
             "Authorization" : "Basic \(baseSixFour ?? "")",
             "Accept" : "application/x-www-form-urlencoded;charset=UTF-8",
@@ -38,12 +37,24 @@ public class SwiftTwitterAPIV2Client {
                 print(json)
                 if let token = json["access_token"].rawString(){
                     self.bearerToken = token
+                    authenticateCompletionHandler(token)
                 }
+                authenticateCompletionHandler("")
             }catch{
                 print(error)
+                authenticateCompletionHandler("")
             }
         }
     }
+    public func authenticate() async -> String {
+        await withCheckedContinuation {continuation in
+            authenticate (authenticateCompletionHandler: { result in
+                    continuation.resume(returning: result)
+            })
+        }
+    }
+    
+    
     public func searchRecentTweets(searchString: String, isVerified : Bool, maxResults: Int, language: Language, searchRecentTweetsCompletionHandler: @escaping (String)-> Void) {
         let language = getLanguage(language: language)
         var query = ""
