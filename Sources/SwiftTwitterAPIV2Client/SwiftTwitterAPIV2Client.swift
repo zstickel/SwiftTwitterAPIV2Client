@@ -54,10 +54,9 @@ public class SwiftTwitterAPIV2Client {
     }
     
     
-    public func searchRecentTweets(searchString: String, isVerified : Bool, maxResults: Int, language: Language, searchRecentTweetsCompletionHandler: @escaping (String)-> Void) {
+    public func searchRecentTweets(searchString: String, isVerified : Bool, maxResults: Int, language: Language, searchRecentTweetsCompletionHandler: @escaping (JSON?)-> Void) {
         let language = getLanguage(language: language)
         var query = ""
-        var finalResult = ""
         if isVerified {
             query = searchString + " " + "is:verified " + "lang:" + language
         }else{
@@ -76,21 +75,21 @@ public class SwiftTwitterAPIV2Client {
             do{
                 guard let data = response.data else {fatalError("Data didn't come back")}
                 let json = try JSON(data: data)
-                finalResult = json["data"][0]["text"].rawString()!
+               
             
-                searchRecentTweetsCompletionHandler(finalResult)
+                searchRecentTweetsCompletionHandler(json)
                 return
             }catch{
-                searchRecentTweetsCompletionHandler("Error fetching tweets")
+                searchRecentTweetsCompletionHandler(nil)
                 return
             }
         }.resume()
     }
     
-    public func searchRecentTweets(searchString: String, isVerified : Bool, maxResults: Int, language: Language) async -> String {
+    public func searchRecentTweets(searchString: String, isVerified : Bool, maxResults: Int, language: Language) async -> JSON {
             await withCheckedContinuation {continuation in
                 searchRecentTweets (searchString: searchString, isVerified: isVerified, maxResults: maxResults, language: language, searchRecentTweetsCompletionHandler: { result in
-                        continuation.resume(returning: result)
+                    continuation.resume(returning: result ?? "Error fetching JSON")
                 })
             }
     }
