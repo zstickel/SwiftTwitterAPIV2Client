@@ -6,7 +6,7 @@ Async Swift Twitter API v2 client makes it easy to make certain calls to Twitter
 
 You can use the Swift Package Manager to install SwiftTwitterAPIV2Client. 
 
-##Usage
+## Usage
 ```swift
 import SwiftTwitterAPIV2Client
 ```
