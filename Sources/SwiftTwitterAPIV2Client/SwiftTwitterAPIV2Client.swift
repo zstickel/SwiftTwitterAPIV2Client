@@ -7,6 +7,7 @@ public class SwiftTwitterAPIV2Client {
 
     let authurl :String = "https://api.twitter.com/oauth2/token"
     let url : String = "https://api.twitter.com/2/tweets/search/recent"
+    let counturl : String = "https://api.twitter.com/2/tweets/counts/recent"
     var concatCredentials: String = ""
     let baseSixFour : String?
     var bearerToken : String = ""
@@ -52,9 +53,11 @@ public class SwiftTwitterAPIV2Client {
             })
         }
     }
-    
+
     
     public func searchRecentTweets(searchString: String, isVerified : Bool, maxResults: Int, language: Language, searchRecentTweetsCompletionHandler: @escaping (JSON?)-> Void) {
+        var numResults = maxResults
+        if maxResults > 100 {numResults = 100}
         let language = getLanguage(language: language)
         var query = ""
         if isVerified {
@@ -69,7 +72,7 @@ public class SwiftTwitterAPIV2Client {
         
         let parameters : [String:String] = [
             "query" : query,
-            "max_results" : String(maxResults),
+            "max_results" : String(numResults),
         ]
         AF.request(url, method: .get, parameters: parameters, headers: queryHeaders).responseDecodable(of: DecodableType.self){ (response) in
             do{
@@ -107,6 +110,37 @@ public class SwiftTwitterAPIV2Client {
             return "es"
         }
         
+    }
+    
+    public func tweetCount (searchString: String, language: Language, tweetCountCompletionHandler: @escaping (JSON?)-> Void){
+        let queryHeaders: HTTPHeaders = [
+            "Authorization" : "Bearer \(bearerToken)",
+            "Accept" : "application/x-www-form-urlencoded;charset=UTF-8",
+        ]
+        let language = getLanguage(language: language)
+        let query = searchString + " " + "lang:" + language
+        let parameters : [String:String] = [
+            "query" : query,
+        ]
+        AF.request(url, method: .get, parameters: parameters, headers: queryHeaders).responseDecodable(of: DecodableType.self){ (response) in
+            do{
+                guard let data = response.data else {fatalError("Data didn't come back")}
+                let json = try JSON(data: data)
+               
+                tweetCountCompletionHandler(json)
+                return
+            }catch{
+                tweetCountCompletionHandler(nil)
+                return
+            }
+        }.resume()
+    }
+    public func tweetCount(searchString: String, language: Language) async -> JSON {
+            await withCheckedContinuation {continuation in
+                tweetCount (searchString: searchString,language: language, tweetCountCompletionHandler: { result in
+                    continuation.resume(returning: result ?? "Error fetching JSON")
+                })
+            }
     }
     
 }
