@@ -122,7 +122,7 @@ public class SwiftTwitterAPIV2Client {
         let parameters : [String:String] = [
             "query" : query,
         ]
-        AF.request(url, method: .get, parameters: parameters, headers: queryHeaders).responseDecodable(of: DecodableType.self){ (response) in
+        AF.request(counturl, method: .get, parameters: parameters, headers: queryHeaders).responseDecodable(of: DecodableType.self){ (response) in
             do{
                 guard let data = response.data else {fatalError("Data didn't come back")}
                 let json = try JSON(data: data)
