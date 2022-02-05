@@ -9,6 +9,8 @@ public class SwiftTwitterAPIV2Client {
     let url : String = "https://api.twitter.com/2/tweets/search/recent"
     let counturl : String = "https://api.twitter.com/2/tweets/counts/recent"
     let retweeturl : String = "https://api.twitter.com/2/tweets/"
+    let userslikingtweeturl : String = "https://api.twitter.com/2/tweets/"
+    let tweetslikedByUserUrl : String = "https://api.twitter.com/2/users/"
     var concatCredentials: String = ""
     let baseSixFour : String?
     var bearerToken : String = ""
@@ -166,6 +168,59 @@ public class SwiftTwitterAPIV2Client {
     public func retweetLookup(id: String) async -> JSON {
             await withCheckedContinuation {continuation in
                 reetweetLookup(id: id) { result in
+                    continuation.resume(returning: result ?? "Error fetching JSON")
+                }
+            }
+    }
+    public func likedTweetUsersLookup (tweetid: String, likedTweetUsersLookupCompletionHandler: @escaping (JSON?)-> Void){
+        let queryHeaders: HTTPHeaders = [
+            "Authorization" : "Bearer \(bearerToken)",
+            "Accept" : "application/x-www-form-urlencoded;charset=UTF-8",
+        ]
+        let likedURL = userslikingtweeturl + tweetid + "/liking_users"
+        AF.request(likedURL, method: .get, headers: queryHeaders).responseDecodable(of: DecodableType.self){ (response) in
+            do{
+                guard let data = response.data else {fatalError("Data didn't come back")}
+                let json = try JSON(data: data)
+               
+                likedTweetUsersLookupCompletionHandler(json)
+                return
+            }catch{
+                likedTweetUsersLookupCompletionHandler(nil)
+                return
+            }
+        }.resume()
+    }
+    public func likedTweetUsersLookup(tweetid: String) async -> JSON {
+            await withCheckedContinuation {continuation in
+                likedTweetUsersLookup(tweetid: tweetid) { result in
+                    continuation.resume(returning: result ?? "Error fetching JSON")
+                }
+            }
+    }
+    
+    public func usersLikedTweetsLookup (userid: String, usersLikedTweetsLookupCompletionHandler: @escaping (JSON?)-> Void){
+        let queryHeaders: HTTPHeaders = [
+            "Authorization" : "Bearer \(bearerToken)",
+            "Accept" : "application/x-www-form-urlencoded;charset=UTF-8",
+        ]
+        let likedURL = tweetslikedByUserUrl + userid + "/liking_users"
+        AF.request(likedURL, method: .get, headers: queryHeaders).responseDecodable(of: DecodableType.self){ (response) in
+            do{
+                guard let data = response.data else {fatalError("Data didn't come back")}
+                let json = try JSON(data: data)
+               
+                usersLikedTweetsLookupCompletionHandler(json)
+                return
+            }catch{
+                usersLikedTweetsLookupCompletionHandler(nil)
+                return
+            }
+        }.resume()
+    }
+    public func usersLikedTweetsLookup(userid: String) async -> JSON {
+            await withCheckedContinuation {continuation in
+                usersLikedTweetsLookup(userid: userid) { result in
                     continuation.resume(returning: result ?? "Error fetching JSON")
                 }
             }

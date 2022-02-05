@@ -2,7 +2,7 @@
 
 ![Platform](https://img.shields.io/badge/platforms-iOS%2013.0%20%7C%20macOS%2010.15-F28D00.svg)
 
-Async Swift Twitter API v2 client makes it easy to make certain calls to Twitter API v2 from your Swift application. This Twitter API v2 client implements a subset of Twitter API v2. Currently only API calls capable of authenticating with OAuth2.0 App-Only are implemented, including Search Recent Tweets, Tweet counts, and Retweets lookup. Contributions to increase API coverage are always welcome!  
+This async Swift Twitter API v2 client makes it easy to make certain calls to the Twitter API v2 from your Swift application. The package implements a subset of Twitter API v2 using Alamofire under the hood. Currently only API calls capable of authenticating with OAuth2.0 App-Only are implemented, including Search Recent Tweets, Tweet counts, Retweets lookup and Likes lookup. Contributions to increase API coverage are always welcome!  
 
 You can use the Swift Package Manager to install SwiftTwitterAPIV2Client. 
 
@@ -42,7 +42,19 @@ let retweeters = await twitterClient.retweetLookup(id: tweetidString)
 ```
 This makes the GET /2/tweets/:id/retweeted_by request. The method will return a JSON object.
 
-You can also use this package without using the async methods using callbacks. For example:
+To get a list of tweets that a user liked, pass the user id as a string:
+```swift
+let tweetsauserliked = await twitterClient.usersLikedTweetsLookup(userid: useridString)
+```
+This makes the GET /2/users/:id/liked_tweets request. The method will return a JSON object.
+
+To get a list of users that liked a tweet, pass the tweet id as a string:
+```swift
+let usersthatlikedatweet = await twitterClient.likedTweetUsersLookup(tweetid: tweetidString)
+```
+
+
+You can also use this package without using the async methods by using callbacks. For example:
 ```swift 
 twitterClient.searchRecentTweets(searchString: searchString,isVerified: false, maxResults: 20, language: .english){result in
     //Code to execute
