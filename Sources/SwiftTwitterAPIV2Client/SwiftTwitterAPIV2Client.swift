@@ -150,11 +150,6 @@ public class SwiftTwitterAPIV2Client {
             "Accept" : "application/x-www-form-urlencoded;charset=UTF-8",
         ]
         let retweetURL = retweeturl + id + "/retweeted_by"
-        /*
-        let parameters : [String:String] = [
-            "query" : "",
-        ]
-         */
         AF.request(retweetURL, method: .get, headers: queryHeaders).responseDecodable(of: DecodableType.self){ (response) in
             do{
                 guard let data = response.data else {fatalError("Data didn't come back")}

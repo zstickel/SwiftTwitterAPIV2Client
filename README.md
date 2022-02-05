@@ -1,6 +1,6 @@
 # SwiftTwitterAPIV2Client
 
-![Platform](https://img.shields.io/badge/platforms-iOS%213.0%20%7C%20macOS%2010.15-F28D00.svg)
+![Platform](https://img.shields.io/badge/platforms-iOS%2013.0%20%7C%20macOS%2010.15-F28D00.svg)
 
 Async Swift Twitter API v2 client makes it easy to make certain calls to Twitter API v2 from your Swift application. This Twitter API v2 client implements a subset of Twitter API v2. Currently only API calls capable of authenticating with OAuth2.0 App-Only are implemented, including Search Recent Tweets, Tweet counts, and Retweets lookup. Contributions to increase API coverage are always welcome!  
 
@@ -26,7 +26,7 @@ To search recent tweets:
 ```swift
 let result = await twitterClient.searchRecentTweets(searchString: searchString,isVerified: false, maxResults: 20, language: .english)
 ```
-This makes the GET /2/tweets/recent request using Alamofire under the hood. The function  will return a JSON object which can be decoded using the SwiftyJSON package which is included as a dependencey. An example of how to decode the JSON object and obtain the first tweet:
+This makes the GET /2/tweets/recent request using Alamofire under the hood. The method will return a JSON object which can be decoded using the SwiftyJSON package which is included as a dependencey. An example of how to decode the JSON object and obtain the first tweet in the result:
 ```swift
 let tweet = result["data"][0]["text"].rawString()!
 ```
@@ -34,8 +34,13 @@ To get a set of historical tweet counts that match a query:
 ```swift
 let result = await twitterClient.tweetCount(searchString: searchString, language: .english)
 ```
-This makes the GET /2/tweets/counts/recent request. The function will return a JSON object.
+This makes the GET /2/tweets/counts/recent request. The method will return a JSON object.
 
+To get a list of accounts that retweeted a given tweet, pass the tweet id as a string:
+```swift
+let retweeters = await twitterClient.retweetLookup(id: tweetidString)
+```
+This makes the GET /2/tweets/:id/retweeted_by request. The method will return a JSON object.
 
 You can also use this package without using the async methods using callbacks. For example:
 ```swift 
