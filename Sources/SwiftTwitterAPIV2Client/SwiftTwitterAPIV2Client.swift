@@ -204,7 +204,7 @@ public class SwiftTwitterAPIV2Client {
             "Authorization" : "Bearer \(bearerToken)",
             "Accept" : "application/x-www-form-urlencoded;charset=UTF-8",
         ]
-        let likedURL = tweetslikedByUserUrl + userid + "/liking_users"
+        let likedURL = tweetslikedByUserUrl + userid + "/liked_tweets"
         AF.request(likedURL, method: .get, headers: queryHeaders).responseDecodable(of: DecodableType.self){ (response) in
             do{
                 guard let data = response.data else {fatalError("Data didn't come back")}
