@@ -8,6 +8,7 @@ public class SwiftTwitterAPIV2Client {
     let authurl :String = "https://api.twitter.com/oauth2/token"
     let url : String = "https://api.twitter.com/2/tweets/search/recent"
     let counturl : String = "https://api.twitter.com/2/tweets/counts/recent"
+    let retweeturl : String = "https://api.twitter.com/2/tweets/"
     var concatCredentials: String = ""
     let baseSixFour : String?
     var bearerToken : String = ""
@@ -143,4 +144,35 @@ public class SwiftTwitterAPIV2Client {
             }
     }
     
+    public func reetweetLookup (id: String, retweetLookupCompletionHandler: @escaping (JSON?)-> Void){
+        let queryHeaders: HTTPHeaders = [
+            "Authorization" : "Bearer \(bearerToken)",
+            "Accept" : "application/x-www-form-urlencoded;charset=UTF-8",
+        ]
+        let retweetURL = retweeturl + id + "/retweeted_by"
+        /*
+        let parameters : [String:String] = [
+            "query" : "",
+        ]
+         */
+        AF.request(retweetURL, method: .get, headers: queryHeaders).responseDecodable(of: DecodableType.self){ (response) in
+            do{
+                guard let data = response.data else {fatalError("Data didn't come back")}
+                let json = try JSON(data: data)
+               
+                retweetLookupCompletionHandler(json)
+                return
+            }catch{
+                retweetLookupCompletionHandler(nil)
+                return
+            }
+        }.resume()
+    }
+    public func retweetLookup(id: String) async -> JSON {
+            await withCheckedContinuation {continuation in
+                reetweetLookup(id: id) { result in
+                    continuation.resume(returning: result ?? "Error fetching JSON")
+                }
+            }
+    }
 }
