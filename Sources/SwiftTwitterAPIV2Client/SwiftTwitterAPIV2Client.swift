@@ -1,29 +1,41 @@
+//
+// SwiftTwitterAPIV2Client.swift
+//
+// Copyright (c) 2022 Zane Stickel
+// MIT License
+
 import Foundation
 import Alamofire
 import SwiftyJSON
 
+/// An async capable Swift client for certain Twitter API V2 calls
 public class SwiftTwitterAPIV2Client {
     
 
-    let authurl :String = "https://api.twitter.com/oauth2/token"
-    let url : String = "https://api.twitter.com/2/tweets/search/recent"
-    let counturl : String = "https://api.twitter.com/2/tweets/counts/recent"
-    let retweeturl : String = "https://api.twitter.com/2/tweets/"
-    let userslikingtweeturl : String = "https://api.twitter.com/2/tweets/"
-    let tweetslikedByUserUrl : String = "https://api.twitter.com/2/users/"
-    var concatCredentials: String = ""
-    let baseSixFour : String?
+    private let authurl :String = "https://api.twitter.com/oauth2/token"
+    private let url : String = "https://api.twitter.com/2/tweets/search/recent"
+    private let counturl : String = "https://api.twitter.com/2/tweets/counts/recent"
+    private let retweeturl : String = "https://api.twitter.com/2/tweets/"
+    private let userslikingtweeturl : String = "https://api.twitter.com/2/tweets/"
+    private let tweetslikedByUserUrl : String = "https://api.twitter.com/2/users/"
+    private var concatCredentials: String = ""
+    private let baseSixFour : String?
     var bearerToken : String = ""
+/// Supports only four languages at this time
     public enum Language {
         case english, french, spanish, german
     }
     
     struct DecodableType: Decodable { let url: String }
-    
+/// Client initializer that also prepares the authorization header  for the authentication method.
+    /// - Parameters
+    ///     -consumer key: Consumer key for the API v2 OAuth2.0 App-Only authentication method.
+    ///     -consumerSecret: Consumer sercret for the API v2 OAuth2.0 App-Only  authentication method.
     public init(consumerKey: String, consumerSecret: String){
         concatCredentials = consumerKey + ":" + consumerSecret
         baseSixFour = concatCredentials.data(using: .utf8)?.base64EncodedString()
     }
+    /// Client authentication method. Stores and returns a bearer token as a String from the twitter API response.
     public func authenticate(authenticateCompletionHandler: @escaping (String)-> Void){
         let headers: HTTPHeaders = [
             "Authorization" : "Basic \(baseSixFour ?? "")",
@@ -45,10 +57,11 @@ public class SwiftTwitterAPIV2Client {
                 authenticateCompletionHandler(token)
             }catch{
                 print(error)
-                authenticateCompletionHandler("")
+                authenticateCompletionHandler("Unable to obtain Bearer Token")
             }
         }
     }
+    /// Async wrapper for the authenticate method.
     public func authenticate() async -> String {
         await withCheckedContinuation {continuation in
             authenticate (authenticateCompletionHandler: { result in
@@ -57,7 +70,12 @@ public class SwiftTwitterAPIV2Client {
         }
     }
 
-    
+    /// Calls the recent tweets request from the Twitter API and returns the received JSON or nil in the event of an error.
+    ///  - Parameters
+    ///   - searchString : The query string to be passed to the Twitter API v2. See the Twitter API documentation for formatting.
+    ///   - isVerified : Require the tweeter to be verified
+    ///   - maxResults : Maximum results desured
+    ///   - language : Only a few of the suported languages are currently supported by the client.
     public func searchRecentTweets(searchString: String, isVerified : Bool, maxResults: Int, language: Language, searchRecentTweetsCompletionHandler: @escaping (JSON?)-> Void) {
         var numResults = maxResults
         if maxResults > 100 {numResults = 100}
