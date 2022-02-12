@@ -21,21 +21,21 @@ public class SwiftTwitterAPIV2Client {
     private var concatCredentials: String = ""
     private let baseSixFour : String?
     var bearerToken : String = ""
-/// Supports only four languages at this time
+/// Supports only four languages at this time, English, French, Spanish, and German
     public enum Language {
         case english, french, spanish, german
     }
     
     struct DecodableType: Decodable { let url: String }
-/// Client initializer that also prepares the authorization header  for the authentication method.
-    /// - Parameters
-    ///     -consumer key: Consumer key for the API v2 OAuth2.0 App-Only authentication method.
-    ///     -consumerSecret: Consumer sercret for the API v2 OAuth2.0 App-Only  authentication method.
+/// Client initializer that prepares the authorization header for the authentication method.
+/// - Parameters:
+///     - consumerKey: Consumer key for the API v2 OAuth2.0 App-Only authentication method. This can be obtained from the Twitter Developer Console.
+///     - consumerSecret: Consumer sercret for the API v2 OAuth2.0 App-Only  authentication method. This can be obtained from the Twitter Developer Console.
     public init(consumerKey: String, consumerSecret: String){
         concatCredentials = consumerKey + ":" + consumerSecret
         baseSixFour = concatCredentials.data(using: .utf8)?.base64EncodedString()
     }
-    /// Client authentication method. Stores and returns a bearer token as a String from the twitter API response.
+/// Authenticates the client to the Twitter APIv2 and returns an OAuth2.0 bearer token or a description of the error.
     public func authenticate(authenticateCompletionHandler: @escaping (String)-> Void){
         let headers: HTTPHeaders = [
             "Authorization" : "Basic \(baseSixFour ?? "")",
@@ -50,7 +50,6 @@ public class SwiftTwitterAPIV2Client {
                 guard let data = response.data else {fatalError("Data didn't come back")}
                 
                 let json = try JSON(data: data)
-                print(json)
                 var token = ""
                 token = json["access_token"].rawString() ?? ""
                 self.bearerToken = token
@@ -61,7 +60,7 @@ public class SwiftTwitterAPIV2Client {
             }
         }
     }
-    /// Async wrapper for the authenticate method.
+/// Async wrapper for the authenticate method. Authenticates the client to the Twitter API and returns an OAuth2.0 bearer token.
     public func authenticate() async -> String {
         await withCheckedContinuation {continuation in
             authenticate (authenticateCompletionHandler: { result in
@@ -70,15 +69,15 @@ public class SwiftTwitterAPIV2Client {
         }
     }
 
-    /// Calls the recent tweets request from the Twitter API and returns the received JSON or nil in the event of an error.
-    ///  - Parameters
-    ///   - searchString : The query string to be passed to the Twitter API v2. See the Twitter API documentation for formatting.
-    ///   - isVerified : Require the tweeter to be verified
-    ///   - maxResults : Maximum results desured
-    ///   - language : Only a few of the suported languages are currently supported by the client.
+    /// Calls the recent tweets GET request from the Twitter API and returns the received JSON or nil in the event of an error.
+    ///  - Parameters:
+    ///     - searchString: The query string to be passed to the Twitter API v2. See the Twitter API documentation for formatting.
+    ///     - isVerified: Require the tweeter to be verified or not
+    ///     - maxResults: Maximum results desired, a parameter greater than 100 or less than one will default to 100.
+    ///     - language: Desired languange. Only a few of the suported languages are currently supported by the client.
     public func searchRecentTweets(searchString: String, isVerified : Bool, maxResults: Int, language: Language, searchRecentTweetsCompletionHandler: @escaping (JSON?)-> Void) {
         var numResults = maxResults
-        if maxResults > 100 {numResults = 100}
+        if maxResults > 100 || maxResults < 1 {numResults = 100}
         let language = getLanguage(language: language)
         var query = ""
         if isVerified {
@@ -100,16 +99,21 @@ public class SwiftTwitterAPIV2Client {
                 guard let data = response.data else {fatalError("Data didn't come back")}
                 let json = try JSON(data: data)
                
-            
                 searchRecentTweetsCompletionHandler(json)
                 return
             }catch{
+                print(error)
                 searchRecentTweetsCompletionHandler(nil)
                 return
             }
         }.resume()
     }
-    
+    /// Asnyc wrapper for searchRecentTweets method. Calls the recent tweets GET request from the Twitter API and returns the received JSON or nil in the event of an error.
+    ///  - Parameters:
+    ///     - searchString: The query string to be passed to the Twitter API v2. See the Twitter API documentation for formatting.
+    ///     - isVerified: Require the tweeter to be verified or not
+    ///     - maxResults: Maximum results desired, a parameter greater than 100 or less than one will default to 100.
+    ///     - language: Desired languange. Only a few of the suported languages are currently supported by the client.
     public func searchRecentTweets(searchString: String, isVerified : Bool, maxResults: Int, language: Language) async -> JSON {
             await withCheckedContinuation {continuation in
                 searchRecentTweets (searchString: searchString, isVerified: isVerified, maxResults: maxResults, language: language, searchRecentTweetsCompletionHandler: { result in
@@ -118,8 +122,8 @@ public class SwiftTwitterAPIV2Client {
             }
     }
     
-    
-    func getLanguage(language: Language)-> String{
+
+    private func getLanguage(language: Language)-> String{
         switch language{
         case .english:
             return "en"
@@ -132,7 +136,10 @@ public class SwiftTwitterAPIV2Client {
         }
         
     }
-    
+    /// Calls the recent tweet count GET request from the Twitter API and returns the received JSON or nil in the event of an error.
+    ///  - Parameters:
+    ///     - searchString: The query string to be passed to the Twitter API v2. See the Twitter API documentation for formatting.
+    ///     - language: Desired languange. Only a few of the suported languages are currently supported by the client.
     public func tweetCount (searchString: String, language: Language, tweetCountCompletionHandler: @escaping (JSON?)-> Void){
         let queryHeaders: HTTPHeaders = [
             "Authorization" : "Bearer \(bearerToken)",
@@ -151,11 +158,16 @@ public class SwiftTwitterAPIV2Client {
                 tweetCountCompletionHandler(json)
                 return
             }catch{
+                print(error)
                 tweetCountCompletionHandler(nil)
                 return
             }
         }.resume()
     }
+    /// Async wrapper for the tweetCount method. Calls the recent tweet count GET request from the Twitter API and returns the received JSON or nil in the event of an error.
+    ///  - Parameters:
+    ///     - searchString: The query string to be passed to the Twitter API v2. See the Twitter API documentation for formatting.
+    ///     - language: Desired languange. Only a few of the suported languages are currently supported by the client.
     public func tweetCount(searchString: String, language: Language) async -> JSON {
             await withCheckedContinuation {continuation in
                 tweetCount (searchString: searchString,language: language, tweetCountCompletionHandler: { result in
@@ -163,7 +175,9 @@ public class SwiftTwitterAPIV2Client {
                 })
             }
     }
-    
+    /// Calls the retweets lookup GET request from the Twitter API and returns the received JSON or nil in the event of an error.
+    ///  - Parameters:
+    ///     - id: The id of the tweet to lookup. You can get a tweet id from the twitter application or via tweet lookup API calls.
     public func reetweetLookup (id: String, retweetLookupCompletionHandler: @escaping (JSON?)-> Void){
         let queryHeaders: HTTPHeaders = [
             "Authorization" : "Bearer \(bearerToken)",
@@ -178,11 +192,15 @@ public class SwiftTwitterAPIV2Client {
                 retweetLookupCompletionHandler(json)
                 return
             }catch{
+                print(error)
                 retweetLookupCompletionHandler(nil)
                 return
             }
         }.resume()
     }
+    /// Async wrapper for the retweetLookup method. Calls the retweets lookup GET request from the Twitter API and returns the received JSON or nil in the event of an error.
+    ///  - Parameters:
+    ///     - id: The id of the tweet to lookup. You can get a tweet id from the twitter application or via tweet lookup API calls.
     public func retweetLookup(id: String) async -> JSON {
             await withCheckedContinuation {continuation in
                 reetweetLookup(id: id) { result in
@@ -190,6 +208,9 @@ public class SwiftTwitterAPIV2Client {
                 }
             }
     }
+    /// Calls the users who have liked a tweet GET request from the Twitter API and returns the received JSON or nil in the event of an error.
+    ///  - Parameters:
+    ///     - tweetid: The id of the tweet to lookup. You can get a tweet id from the twitter application or via tweet lookup API calls.
     public func likedTweetUsersLookup (tweetid: String, likedTweetUsersLookupCompletionHandler: @escaping (JSON?)-> Void){
         let queryHeaders: HTTPHeaders = [
             "Authorization" : "Bearer \(bearerToken)",
@@ -204,11 +225,15 @@ public class SwiftTwitterAPIV2Client {
                 likedTweetUsersLookupCompletionHandler(json)
                 return
             }catch{
+                print(error)
                 likedTweetUsersLookupCompletionHandler(nil)
                 return
             }
         }.resume()
     }
+    /// Async wrapper for the likedTweetUsersLookup method. Calls the users who have liked a tweet GET request from the Twitter API and returns the received JSON or nil in the event of an error.
+    ///  - Parameters:
+    ///     - tweetid: The id of the tweet to lookup. You can get a tweet id from the twitter application or via tweet lookup API calls.
     public func likedTweetUsersLookup(tweetid: String) async -> JSON {
             await withCheckedContinuation {continuation in
                 likedTweetUsersLookup(tweetid: tweetid) { result in
@@ -216,7 +241,9 @@ public class SwiftTwitterAPIV2Client {
                 }
             }
     }
-    
+    /// Calls the tweets liked by a user GET request from the Twitter API and returns the received JSON or nil in the event of an error.
+    ///  - Parameters:
+    ///     - userid: The userid of the user whose liked tweets to lookup.
     public func usersLikedTweetsLookup (userid: String, usersLikedTweetsLookupCompletionHandler: @escaping (JSON?)-> Void){
         let queryHeaders: HTTPHeaders = [
             "Authorization" : "Bearer \(bearerToken)",
@@ -231,11 +258,15 @@ public class SwiftTwitterAPIV2Client {
                 usersLikedTweetsLookupCompletionHandler(json)
                 return
             }catch{
+                print(error)
                 usersLikedTweetsLookupCompletionHandler(nil)
                 return
             }
         }.resume()
     }
+    /// Async wrapper for the usersLikedTweetsLookup method. Calls the tweets liked by a user GET request from the Twitter API and returns the received JSON or nil in the event of an error.
+    ///  - Parameters:
+    ///     - userid: The userid of the user whose liked tweets to lookup.
     public func usersLikedTweetsLookup(userid: String) async -> JSON {
             await withCheckedContinuation {continuation in
                 usersLikedTweetsLookup(userid: userid) { result in
