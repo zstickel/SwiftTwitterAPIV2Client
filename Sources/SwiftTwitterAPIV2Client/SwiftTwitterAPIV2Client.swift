@@ -37,6 +37,21 @@ public class SwiftTwitterAPIV2Client {
         concatCredentials = consumerKey + ":" + consumerSecret
         baseSixFour = concatCredentials.data(using: .utf8)?.base64EncodedString()
     }
+    
+// Used to select a language for received tweets, more languages are available through the twitter api and will be implemented at a later date.
+    private func getLanguage(language: Language)-> String{
+        switch language{
+        case .english:
+            return "en"
+        case .german:
+            return "de"
+        case .french:
+            return "fr"
+        case .spanish:
+            return "es"
+        }
+        
+    }
 /// Authenticates the client to the Twitter APIv2 and returns an OAuth2.0 bearer token or a description of the error.
     public func authenticate(authenticateCompletionHandler: @escaping (String)-> Void){
         let headers: HTTPHeaders = [
@@ -130,29 +145,16 @@ public class SwiftTwitterAPIV2Client {
             }
     }
     
-
-    private func getLanguage(language: Language)-> String{
-        switch language{
-        case .english:
-            return "en"
-        case .german:
-            return "de"
-        case .french:
-            return "fr"
-        case .spanish:
-            return "es"
-        }
-        
-    }
     /// Calls the recent tweet count GET request from the Twitter API and returns the received JSON or nil in the event of an error.
     ///  - Parameters:
     ///     - searchString: The query string to be passed to the Twitter API v2. See the Twitter API documentation for formatting.
     ///     - language: Desired languange. Only a few of the suported languages are currently supported by the client.
     public func tweetCount (searchString: String, language: Language, tweetCountCompletionHandler: @escaping (JSON?)-> Void){
-        let queryHeaders: HTTPHeaders = [
-            "Authorization" : "Bearer \(bearerToken)",
-            "Accept" : "application/x-www-form-urlencoded;charset=UTF-8",
-        ]
+        if !isAuthenticated {
+            print("Authenticate first")
+            tweetCountCompletionHandler(nil)
+            return
+        }
         let language = getLanguage(language: language)
         let query = searchString + " " + "lang:" + language
         let parameters : [String:String] = [
@@ -187,10 +189,11 @@ public class SwiftTwitterAPIV2Client {
     ///  - Parameters:
     ///     - id: The id of the tweet to lookup. You can get a tweet id from the twitter application or via tweet lookup API calls.
     public func reetweetLookup (id: String, retweetLookupCompletionHandler: @escaping (JSON?)-> Void){
-        let queryHeaders: HTTPHeaders = [
-            "Authorization" : "Bearer \(bearerToken)",
-            "Accept" : "application/x-www-form-urlencoded;charset=UTF-8",
-        ]
+        if !isAuthenticated {
+            print("Authenticate first")
+            retweetLookupCompletionHandler(nil)
+            return
+        }
         let retweetURL = retweeturl + id + "/retweeted_by"
         AF.request(retweetURL, method: .get, headers: queryHeaders).responseDecodable(of: DecodableType.self){ (response) in
             do{
@@ -220,10 +223,11 @@ public class SwiftTwitterAPIV2Client {
     ///  - Parameters:
     ///     - tweetid: The id of the tweet to lookup. You can get a tweet id from the twitter application or via tweet lookup API calls.
     public func likedTweetUsersLookup (tweetid: String, likedTweetUsersLookupCompletionHandler: @escaping (JSON?)-> Void){
-        let queryHeaders: HTTPHeaders = [
-            "Authorization" : "Bearer \(bearerToken)",
-            "Accept" : "application/x-www-form-urlencoded;charset=UTF-8",
-        ]
+        if !isAuthenticated {
+            print("Authenticate first")
+            likedTweetUsersLookupCompletionHandler(nil)
+            return
+        }
         let likedURL = userslikingtweeturl + tweetid + "/liking_users"
         AF.request(likedURL, method: .get, headers: queryHeaders).responseDecodable(of: DecodableType.self){ (response) in
             do{
@@ -253,10 +257,11 @@ public class SwiftTwitterAPIV2Client {
     ///  - Parameters:
     ///     - userid: The userid of the user whose liked tweets to lookup.
     public func usersLikedTweetsLookup (userid: String, usersLikedTweetsLookupCompletionHandler: @escaping (JSON?)-> Void){
-        let queryHeaders: HTTPHeaders = [
-            "Authorization" : "Bearer \(bearerToken)",
-            "Accept" : "application/x-www-form-urlencoded;charset=UTF-8",
-        ]
+        if !isAuthenticated {
+            print("Authenticate first")
+            usersLikedTweetsLookupCompletionHandler(nil)
+            return
+        }
         let likedURL = tweetslikedByUserUrl + userid + "/liked_tweets"
         AF.request(likedURL, method: .get, headers: queryHeaders).responseDecodable(of: DecodableType.self){ (response) in
             do{
