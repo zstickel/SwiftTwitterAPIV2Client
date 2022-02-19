@@ -20,6 +20,8 @@ public class SwiftTwitterAPIV2Client {
     private let tweetslikedByUserUrl : String = "https://api.twitter.com/2/users/"
     private var concatCredentials: String = ""
     private let baseSixFour : String?
+    private var queryHeaders: HTTPHeaders = []
+    public var isAuthenticated = false
     var bearerToken : String = ""
 /// Supports only four languages at this time, English, French, Spanish, and German
     public enum Language {
@@ -53,6 +55,11 @@ public class SwiftTwitterAPIV2Client {
                 var token = ""
                 token = json["access_token"].rawString() ?? ""
                 self.bearerToken = token
+                self.queryHeaders = [
+                    "Authorization" : "Bearer \(self.bearerToken)",
+                    "Accept" : "application/x-www-form-urlencoded;charset=UTF-8",
+                ]
+                self.isAuthenticated = true
                 authenticateCompletionHandler(token)
             }catch{
                 print(error)
@@ -76,6 +83,11 @@ public class SwiftTwitterAPIV2Client {
     ///     - maxResults: Maximum results desired, a parameter greater than 100 or less than one will default to 100.
     ///     - language: Desired languange. Only a few of the suported languages are currently supported by the client.
     public func searchRecentTweets(searchString: String, isVerified : Bool, maxResults: Int, language: Language, searchRecentTweetsCompletionHandler: @escaping (JSON?)-> Void) {
+        if !isAuthenticated {
+            print("Authenticate first")
+            searchRecentTweetsCompletionHandler(nil)
+            return
+        }
         var numResults = maxResults
         if maxResults > 100 || maxResults < 1 {numResults = 100}
         let language = getLanguage(language: language)
@@ -85,11 +97,7 @@ public class SwiftTwitterAPIV2Client {
         }else{
             query = searchString + " " + "lang:" + language
         }
-        let queryHeaders: HTTPHeaders = [
-            "Authorization" : "Bearer \(bearerToken)",
-            "Accept" : "application/x-www-form-urlencoded;charset=UTF-8",
-        ]
-        
+       
         let parameters : [String:String] = [
             "query" : query,
             "max_results" : String(numResults),
