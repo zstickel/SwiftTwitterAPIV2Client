@@ -25,7 +25,7 @@ public class SwiftTwitterAPIV2Client {
     var bearerToken : String = ""
 /// Supports only four languages at this time, English, French, Spanish, and German
     public enum Language {
-        case english, french, spanish, german
+        case english, french, spanish, german, ukranian
     }
     
     struct DecodableType: Decodable { let url: String }
@@ -49,6 +49,8 @@ public class SwiftTwitterAPIV2Client {
             return "fr"
         case .spanish:
             return "es"
+        case .ukranian:
+            return "uk"
         }
         
     }
@@ -160,6 +162,8 @@ public class SwiftTwitterAPIV2Client {
         let parameters : [String:String] = [
             "query" : query,
         ]
+       
+        
         AF.request(counturl, method: .get, parameters: parameters, headers: queryHeaders).responseDecodable(of: DecodableType.self){ (response) in
             do{
                 guard let data = response.data else {fatalError("Data didn't come back")}
@@ -286,5 +290,21 @@ public class SwiftTwitterAPIV2Client {
                     continuation.resume(returning: result ?? "Error fetching JSON")
                 }
             }
+    }
+    
+    @available(macOS 12.0, *)
+    public func asyncTweetCount(searchString: String, language: Language) async {
+        if !isAuthenticated {
+            print("Authenticate first")
+            return
+        }
+        let language = getLanguage(language: language)
+        let query = searchString + " " + "lang:" + language
+        let parameters = [
+            URLQueryItem(name: "query", value: query)
+        ]
+        if let data = await Networking.loadData(queryItems: parameters){
+            print(data)
+        }
     }
 }
