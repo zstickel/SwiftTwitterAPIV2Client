@@ -11,7 +11,7 @@ import SwiftyJSON
 /// An async capable Swift client for certain Twitter API V2 calls
 public class SwiftTwitterAPIV2Client {
     
-
+    
     private let authurl :String = "https://api.twitter.com/oauth2/token"
     private let url : String = "https://api.twitter.com/2/tweets/search/recent"
     private let counturl : String = "https://api.twitter.com/2/tweets/counts/recent"
@@ -23,22 +23,22 @@ public class SwiftTwitterAPIV2Client {
     private var queryHeaders: HTTPHeaders = []
     public var isAuthenticated = false
     var bearerToken : String = ""
-/// Supports only four languages at this time, English, French, Spanish, and German
+    /// Supports only four languages at this time, English, French, Spanish, and German
     public enum Language {
         case english, french, spanish, german, ukranian
     }
     
     struct DecodableType: Decodable { let url: String }
-/// Client initializer that prepares the authorization header for the authentication method.
-/// - Parameters:
-///     - consumerKey: Consumer key for the API v2 OAuth2.0 App-Only authentication method. This can be obtained from the Twitter Developer Console.
-///     - consumerSecret: Consumer sercret for the API v2 OAuth2.0 App-Only  authentication method. This can be obtained from the Twitter Developer Console.
+    /// Client initializer that prepares the authorization header for the authentication method.
+    /// - Parameters:
+    ///     - consumerKey: Consumer key for the API v2 OAuth2.0 App-Only authentication method. This can be obtained from the Twitter Developer Console.
+    ///     - consumerSecret: Consumer sercret for the API v2 OAuth2.0 App-Only  authentication method. This can be obtained from the Twitter Developer Console.
     public init(consumerKey: String, consumerSecret: String){
         concatCredentials = consumerKey + ":" + consumerSecret
         baseSixFour = concatCredentials.data(using: .utf8)?.base64EncodedString()
     }
     
-// Used to select a language for received tweets, more languages are available through the twitter api and will be implemented at a later date.
+    // Used to select a language for received tweets, more languages are available through the twitter api and will be implemented at a later date.
     private func getLanguage(language: Language)-> String{
         switch language{
         case .english:
@@ -54,7 +54,7 @@ public class SwiftTwitterAPIV2Client {
         }
         
     }
-/// Authenticates the client to the Twitter APIv2 and returns an OAuth2.0 bearer token or a description of the error.
+    /// Authenticates the client to the Twitter APIv2 and returns an OAuth2.0 bearer token or a description of the error.
     public func authenticate(authenticateCompletionHandler: @escaping (String)-> Void){
         let headers: HTTPHeaders = [
             "Authorization" : "Basic \(baseSixFour ?? "")",
@@ -84,15 +84,15 @@ public class SwiftTwitterAPIV2Client {
             }
         }
     }
-/// Async wrapper for the authenticate method. Authenticates the client to the Twitter API and returns an OAuth2.0 bearer token.
+    /// Async wrapper for the authenticate method. Authenticates the client to the Twitter API and returns an OAuth2.0 bearer token.
     public func authenticate() async -> String {
         await withCheckedContinuation {continuation in
             authenticate (authenticateCompletionHandler: { result in
-                    continuation.resume(returning: result)
+                continuation.resume(returning: result)
             })
         }
     }
-
+    
     /// Calls the recent tweets GET request from the Twitter API and returns the received JSON or nil in the event of an error.
     ///  - Parameters:
     ///     - searchString: The query string to be passed to the Twitter API v2. See the Twitter API documentation for formatting.
@@ -114,7 +114,7 @@ public class SwiftTwitterAPIV2Client {
         }else{
             query = searchString + " " + "lang:" + language
         }
-       
+        
         let parameters : [String:String] = [
             "query" : query,
             "max_results" : String(numResults),
@@ -123,7 +123,7 @@ public class SwiftTwitterAPIV2Client {
             do{
                 guard let data = response.data else {fatalError("Data didn't come back")}
                 let json = try JSON(data: data)
-               
+                
                 searchRecentTweetsCompletionHandler(json)
                 return
             }catch{
@@ -140,11 +140,11 @@ public class SwiftTwitterAPIV2Client {
     ///     - maxResults: Maximum results desired, a parameter greater than 100 or less than one will default to 100.
     ///     - language: Desired languange. Only a few of the suported languages are currently supported by the client.
     public func searchRecentTweets(searchString: String, isVerified : Bool, maxResults: Int, language: Language) async -> JSON {
-            await withCheckedContinuation {continuation in
-                searchRecentTweets (searchString: searchString, isVerified: isVerified, maxResults: maxResults, language: language, searchRecentTweetsCompletionHandler: { result in
-                    continuation.resume(returning: result ?? "Error fetching JSON")
-                })
-            }
+        await withCheckedContinuation {continuation in
+            searchRecentTweets (searchString: searchString, isVerified: isVerified, maxResults: maxResults, language: language, searchRecentTweetsCompletionHandler: { result in
+                continuation.resume(returning: result ?? "Error fetching JSON")
+            })
+        }
     }
     
     /// Calls the recent tweet count GET request from the Twitter API and returns the received JSON or nil in the event of an error.
@@ -162,13 +162,13 @@ public class SwiftTwitterAPIV2Client {
         let parameters : [String:String] = [
             "query" : query,
         ]
-       
+        
         
         AF.request(counturl, method: .get, parameters: parameters, headers: queryHeaders).responseDecodable(of: DecodableType.self){ (response) in
             do{
                 guard let data = response.data else {fatalError("Data didn't come back")}
                 let json = try JSON(data: data)
-               
+                
                 tweetCountCompletionHandler(json)
                 return
             }catch{
@@ -183,11 +183,11 @@ public class SwiftTwitterAPIV2Client {
     ///     - searchString: The query string to be passed to the Twitter API v2. See the Twitter API documentation for formatting.
     ///     - language: Desired languange. Only a few of the suported languages are currently supported by the client.
     public func tweetCount(searchString: String, language: Language) async -> JSON {
-            await withCheckedContinuation {continuation in
-                tweetCount (searchString: searchString,language: language, tweetCountCompletionHandler: { result in
-                    continuation.resume(returning: result ?? "Error fetching JSON")
-                })
-            }
+        await withCheckedContinuation {continuation in
+            tweetCount (searchString: searchString,language: language, tweetCountCompletionHandler: { result in
+                continuation.resume(returning: result ?? "Error fetching JSON")
+            })
+        }
     }
     /// Calls the retweets lookup GET request from the Twitter API and returns the received JSON or nil in the event of an error.
     ///  - Parameters:
@@ -203,7 +203,7 @@ public class SwiftTwitterAPIV2Client {
             do{
                 guard let data = response.data else {fatalError("Data didn't come back")}
                 let json = try JSON(data: data)
-               
+                
                 retweetLookupCompletionHandler(json)
                 return
             }catch{
@@ -217,11 +217,11 @@ public class SwiftTwitterAPIV2Client {
     ///  - Parameters:
     ///     - id: The id of the tweet to lookup. You can get a tweet id from the twitter application or via tweet lookup API calls.
     public func retweetLookup(id: String) async -> JSON {
-            await withCheckedContinuation {continuation in
-                reetweetLookup(id: id) { result in
-                    continuation.resume(returning: result ?? "Error fetching JSON")
-                }
+        await withCheckedContinuation {continuation in
+            reetweetLookup(id: id) { result in
+                continuation.resume(returning: result ?? "Error fetching JSON")
             }
+        }
     }
     /// Calls the users who have liked a tweet GET request from the Twitter API and returns the received JSON or nil in the event of an error.
     ///  - Parameters:
@@ -237,7 +237,7 @@ public class SwiftTwitterAPIV2Client {
             do{
                 guard let data = response.data else {fatalError("Data didn't come back")}
                 let json = try JSON(data: data)
-               
+                
                 likedTweetUsersLookupCompletionHandler(json)
                 return
             }catch{
@@ -251,11 +251,11 @@ public class SwiftTwitterAPIV2Client {
     ///  - Parameters:
     ///     - tweetid: The id of the tweet to lookup. You can get a tweet id from the twitter application or via tweet lookup API calls.
     public func likedTweetUsersLookup(tweetid: String) async -> JSON {
-            await withCheckedContinuation {continuation in
-                likedTweetUsersLookup(tweetid: tweetid) { result in
-                    continuation.resume(returning: result ?? "Error fetching JSON")
-                }
+        await withCheckedContinuation {continuation in
+            likedTweetUsersLookup(tweetid: tweetid) { result in
+                continuation.resume(returning: result ?? "Error fetching JSON")
             }
+        }
     }
     /// Calls the tweets liked by a user GET request from the Twitter API and returns the received JSON or nil in the event of an error.
     ///  - Parameters:
@@ -271,7 +271,7 @@ public class SwiftTwitterAPIV2Client {
             do{
                 guard let data = response.data else {fatalError("Data didn't come back")}
                 let json = try JSON(data: data)
-               
+                
                 usersLikedTweetsLookupCompletionHandler(json)
                 return
             }catch{
@@ -285,26 +285,34 @@ public class SwiftTwitterAPIV2Client {
     ///  - Parameters:
     ///     - userid: The userid of the user whose liked tweets to lookup.
     public func usersLikedTweetsLookup(userid: String) async -> JSON {
-            await withCheckedContinuation {continuation in
-                usersLikedTweetsLookup(userid: userid) { result in
-                    continuation.resume(returning: result ?? "Error fetching JSON")
-                }
+        await withCheckedContinuation {continuation in
+            usersLikedTweetsLookup(userid: userid) { result in
+                continuation.resume(returning: result ?? "Error fetching JSON")
             }
+        }
     }
     @available(iOS 15.0, *)
     @available(macOS 12.0, *)
-    public func asyncTweetCount(searchString: String, language: Language) async {
+    public func asyncTweetCount(searchString: String, language: Language) async -> JSON? {
         if !isAuthenticated {
             print("Authenticate first")
-            return
+            return nil
         }
         let language = getLanguage(language: language)
         let query = searchString + " " + "lang:" + language
         let parameters = [
             URLQueryItem(name: "query", value: query)
         ]
-        if let data = await Networking.loadData(queryItems: parameters){
-            print(data)
+        do{
+            if let data = await Networking.loadData(queryItems: parameters){
+                let json = try JSON(data: data)
+                return json
+            }
+            print("no data back")
+            return nil
+        }catch{
+            print(error)
+            return nil
         }
     }
 }
