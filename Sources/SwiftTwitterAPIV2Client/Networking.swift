@@ -8,6 +8,7 @@
 import Foundation
 
 struct Networking {
+    @available(iOS 15.0, *)
     @available(macOS 12.0, *) static func loadData(queryItems:[URLQueryItem]) async -> Data? {
         var components = URLComponents()
         components.scheme = "https"

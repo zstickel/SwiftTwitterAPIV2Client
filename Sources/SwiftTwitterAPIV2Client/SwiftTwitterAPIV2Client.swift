@@ -291,7 +291,7 @@ public class SwiftTwitterAPIV2Client {
                 }
             }
     }
-    
+    @available(iOS 15.0, *)
     @available(macOS 12.0, *)
     public func asyncTweetCount(searchString: String, language: Language) async {
         if !isAuthenticated {
